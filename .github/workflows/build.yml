@@ -29,6 +29,7 @@ jobs:
       - name: Build
         working-directory: source
         run: |
+          set -o pipefail
           xcodebuild build \
             -project 5013.xcodeproj \
             -scheme 5013 \
@@ -42,19 +43,38 @@ jobs:
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
-            | xcpretty || true
+            2>&1 | tee build.log
+          echo "Build exit code: $?"
+
+      - name: Show build errors on failure
+        if: failure()
+        working-directory: source
+        run: |
+          echo "=== BUILD ERRORS ==="
+          grep -E "error:|warning:|fatal" build.log || true
 
       - name: Package IPA
         working-directory: source
         run: |
           APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -1)
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: .app not found"
+            echo "ERROR: .app not found in build output"
+            find build/ -type f | head -50
             exit 1
           fi
+          echo "Found app at: $APP_PATH"
+          echo "App contents:"
+          ls -la "$APP_PATH/"
+          BINARY="$APP_PATH/5013"
+          if [ ! -f "$BINARY" ]; then
+            echo "ERROR: Binary '5013' not found inside .app — build likely failed silently"
+            exit 1
+          fi
+          echo "Binary size: $(stat -f%z "$BINARY") bytes"
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
           zip -r 5013-unsigned.ipa Payload
+          echo "IPA size: $(stat -f%z 5013-unsigned.ipa) bytes"
           rm -rf Payload
 
       - name: Upload IPA

