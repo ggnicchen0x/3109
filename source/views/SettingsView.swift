@@ -26,7 +26,7 @@ struct SettingsView: View {
     // MARK: - Status
 
     private var statusSection: some View {
-        Section("Status") {
+        Section {
             HStack {
                 Text("Exploit Status")
                 Spacer()
@@ -49,6 +49,8 @@ struct SettingsView: View {
                         .foregroundColor(.green)
                 }
             }
+        } header: {
+            Text("Status")
         }
     }
 
@@ -317,7 +319,7 @@ struct AirLiftView: View {
 
     var body: some View {
         List {
-            Section("Status") {
+            Section {
                 LabeledContent("Pairing") {
                     Text(service.hasPairing ? "Present" : "None")
                         .foregroundColor(service.hasPairing ? .green : .secondary)
@@ -331,9 +333,11 @@ struct AirLiftView: View {
                         .font(.caption)
                         .foregroundColor(.red)
                 }
+            } header: {
+                Text("Status")
             }
 
-            Section("Actions") {
+            Section {
                 Button("Import Pairing File") {
                     // Present document picker for pairing import
                 }
@@ -350,6 +354,8 @@ struct AirLiftView: View {
                     }
                     .disabled(service.isBusy)
                 }
+            } header: {
+                Text("Actions")
             }
 
             if service.isBusy {
