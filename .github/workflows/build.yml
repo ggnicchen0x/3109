@@ -1,0 +1,65 @@
+name: Build Unsigned IPA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: source
+        run: xcodegen generate
+
+      - name: Build
+        working-directory: source
+        run: |
+          xcodebuild build \
+            -project 5013.xcodeproj \
+            -scheme 5013 \
+            -configuration Release \
+            -sdk iphoneos \
+            -arch arm64 \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            | xcpretty || true
+
+      - name: Package IPA
+        working-directory: source
+        run: |
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: .app not found"
+            exit 1
+          fi
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r 5013-unsigned.ipa Payload
+          rm -rf Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: 5013-unsigned-ipa
+          path: source/5013-unsigned.ipa
+          retention-days: 90

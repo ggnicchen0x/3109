@@ -1,0 +1,89 @@
+name: "5013"
+options:
+  bundleIdPrefix: com.5013
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+  createIntermediateGroups: true
+  defaultConfig: Release
+
+settings:
+  base:
+    TARGETED_DEVICE_FAMILY: "1,2"
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    ARCHS: arm64
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGN_IDENTITY: ""
+
+targets:
+  "5013":
+    type: application
+    platform: iOS
+    sources:
+      - path: app
+        type: group
+        compilerFlags: []
+        excludes:
+          - "*.h"
+          - "*.m"
+          - "*.c"
+      - path: services
+        type: group
+      - path: views
+        type: group
+      - path: app/app_info.m
+        compilerFlags: ["-fmodules", "-fobjc-arc"]
+        type: file
+      - path: mcm/mcm_bridge.m
+        compilerFlags: ["-fmodules", "-fobjc-arc"]
+        type: file
+      - path: worse_query/worse_query.m
+        compilerFlags: ["-fmodules", "-fobjc-arc"]
+        type: file
+      - path: exploit/exploit.c
+        compilerFlags: ["-x", "objective-c", "-fmodules", "-fobjc-arc"]
+        type: file
+      - path: exploit/offsets.c
+        compilerFlags: ["-x", "objective-c", "-fmodules", "-fobjc-arc"]
+        type: file
+      - path: exploit/krw.c
+        compilerFlags: ["-x", "objective-c", "-fmodules", "-fobjc-arc"]
+        type: file
+      - path: exploit/physical.c
+        compilerFlags: ["-x", "objective-c", "-fmodules", "-fobjc-arc"]
+        type: file
+      - path: sandbox/sandbox_escape.c
+        compilerFlags: ["-x", "objective-c", "-fmodules", "-fobjc-arc"]
+        type: file
+    settings:
+      base:
+        INFOPLIST_FILE: Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.5013.app
+        PRODUCT_NAME: "5013"
+        SWIFT_OBJC_BRIDGING_HEADER: 5013-Bridging-Header.h
+        HEADER_SEARCH_PATHS:
+          - "$(SRCROOT)"
+          - "$(SRCROOT)/exploit"
+          - "$(SRCROOT)/sandbox"
+          - "$(SRCROOT)/mcm"
+          - "$(SRCROOT)/worse_query"
+          - "$(SRCROOT)/app"
+          - "$(SRCROOT)/stubs"
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SRCROOT)/stubs"
+        OTHER_LDFLAGS:
+          - "-lsqlite3"
+          - "-framework IOKit"
+          - "-framework IOSurface"
+        CLANG_ENABLE_MODULES: "YES"
+        GCC_PRECOMPILE_PREFIX_HEADER: "NO"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG"
+      configs:
+        Release:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: ""
+          SWIFT_OPTIMIZATION_LEVEL: "-O"
+        Debug:
+          SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+    info:
+      path: Info.plist

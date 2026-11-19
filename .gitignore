@@ -1,0 +1,28 @@
+# Xcode
+source/build/
+source/5013.xcodeproj/
+*.xcworkspace
+xcuserdata/
+DerivedData/
+
+# macOS
+.DS_Store
+*.swp
+
+# IPA output
+*.ipa
+
+# Claude
+.claude/
+
+# Original binary
+5013.app/
+5013-3.2.17-unsigned.ipa
+Payload/
+
+# Ghidra skill
+claude-reverse-engineering-skill-main/
+
+# Misc
+*.pyc
+__pycache__/
