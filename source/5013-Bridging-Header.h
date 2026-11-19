@@ -10,7 +10,7 @@
 #import "worse_query/worse_query.h"
 #import "app/app_info.h"
 
-// sandbox_escape.c
+// sandbox_escape.m
 extern int sandbox_escape(void);
 
 #endif
