@@ -1,3 +1,4 @@
+
 name: Build Unsigned IPA
 
 on:
@@ -9,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-latest
     timeout-minutes: 30
 
     steps:
@@ -17,7 +18,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+        run: |
+          sudo xcode-select -s "$(find /Applications -maxdepth 1 -name 'Xcode*.app' | sort -V | tail -1)/Contents/Developer"
 
       - name: Install xcodegen
         run: brew install xcodegen
@@ -29,6 +31,7 @@ jobs:
       - name: Build
         working-directory: source
         run: |
+          set -o pipefail
           xcodebuild build \
             -project 5013.xcodeproj \
             -scheme 5013 \
@@ -42,7 +45,7 @@ jobs:
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
-            | xcpretty || true
+            | xcpretty
 
       - name: Package IPA
         working-directory: source
