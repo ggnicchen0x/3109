@@ -15,8 +15,24 @@ final class ContainerPathCache: Codable {
         case group
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case entries
+    }
+
     private var entries: [String: Entry] = [:]
     private let lock = NSRecursiveLock()
+
+    init() {}
+
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        entries = try container.decode([String: Entry].self, forKey: .entries)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(entries, forKey: .entries)
+    }
 
     private static var cacheURL: URL {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!

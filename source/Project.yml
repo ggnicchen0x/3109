@@ -2,7 +2,7 @@ name: "5013"
 options:
   bundleIdPrefix: com.5013
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "16.0"
   xcodeVersion: "15.0"
   createIntermediateGroups: true
   defaultConfig: Release
@@ -11,7 +11,7 @@ settings:
   base:
     TARGETED_DEVICE_FAMILY: "1,2"
     SWIFT_VERSION: "5.9"
-    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     ARCHS: arm64
     CODE_SIGNING_ALLOWED: "NO"
     CODE_SIGN_IDENTITY: ""
