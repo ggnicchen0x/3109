@@ -25,6 +25,7 @@ struct SettingsView: View {
 
     // MARK: - Status
 
+    @ViewBuilder
     private var statusSection: some View {
         Section {
             HStack {
@@ -41,7 +42,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            if case .ready = appState.exploitStatus {
+            if exploitIsReady {
                 HStack {
                     Text("Access")
                     Spacer()
@@ -52,6 +53,11 @@ struct SettingsView: View {
         } header: {
             Text("Status")
         }
+    }
+
+    private var exploitIsReady: Bool {
+        if case .ready = appState.exploitStatus { return true }
+        return false
     }
 
     // MARK: - Appearance
